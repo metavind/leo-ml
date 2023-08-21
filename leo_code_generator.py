@@ -11,17 +11,17 @@ def generate_nn_code(input_dim, output_dim, model_data):
         idx = 1
 
         while f'l{idx}_weights' in model_data and f'l{idx}_biases' in model_data:
-            input_size = len(model_data.get(f'l{idx}_biases', []))
-            output_size = len(model_data.get(
-                f'l{idx}_weights', [])) // input_size
+            output_size = len(model_data.get(f'l{idx}_biases', []))
+            input_size = len(model_data.get(
+                f'l{idx}_weights', [])) // output_size
 
             weights = "\n".join(
-                [f"{indentation*4}i{i+1}_o{j+1}: {model_data.get(f'l{idx}_weights', [])[i*output_size + j]}i128," for j in range(
-                    input_size) for i in range(output_size)]
+                [f"{indentation*4}i{i+1}_o{j+1}: {model_data.get(f'l{idx}_weights', [])[j*input_size + i]}i128," for j in range(
+                    output_size) for i in range(input_size)]
             )
             biases = "\n".join(
                 [f"{indentation*4}b{j+1}: {model_data.get(f'l{idx}_biases', [])[j]}i128," for j in range(
-                    input_size)]
+                    output_size)]
             )
 
             layer_inits.append(
@@ -29,16 +29,16 @@ def generate_nn_code(input_dim, output_dim, model_data):
             idx += 1
 
         # Initialization for output layer
-        output_dim = len(model_data.get('lo_biases', []))
-        prev_layer_size = len(model_data.get('lo_weights', [])) // output_dim
+        output_size = len(model_data.get('lo_biases', []))
+        input_size = len(model_data.get('lo_weights', [])) // output_size
 
         output_weights = "\n".join(
-            [f"{indentation*4}i{i+1}_o{j+1}: {model_data.get('lo_weights', [])[i*output_dim + j]}i128," for i in range(
-                prev_layer_size) for j in range(output_dim)]
+            [f"{indentation*4}i{i+1}_o{j+1}: {model_data.get('lo_weights', [])[j*output_size + i]}i128," for i in range(
+                input_size) for j in range(output_size)]
         )
         output_biases = "\n".join(
             [f"{indentation*4}b{j+1}: {model_data.get('lo_biases', [])[j]}i128," for j in range(
-                output_dim)]
+                output_size)]
         )
         layer_inits.append(
             f"{indentation*3}lo: Lo {{\n{output_weights}\n{output_biases}\n{indentation*3}}},")
