@@ -1,8 +1,48 @@
 import argparse
 
 
-def generate_nn_code(input_dim, hidden_dims, output_dim):
+def generate_nn_code(input_dim, output_dim, model_data):
     indentation = "    "
+
+    # Helper function to generate the explicit model initialization
+    def generate_model_initialization():
+        layer_inits = []
+        idx = 1
+
+        while f'l{idx}_weights' in model_data and f'l{idx}_biases' in model_data:
+            input_size = len(model_data.get(f'l{idx}_biases', []))
+            output_size = len(model_data.get(
+                f'l{idx}_weights', [])) // input_size
+
+            weights = "\n".join(
+                [f"{indentation*4}i{i+1}_o{j+1}: {model_data.get(f'l{idx}_weights', [])[i*output_size + j]}i128," for i in range(
+                    input_size) for j in range(output_size)]
+            )
+            biases = "\n".join(
+                [f"{indentation*4}b{j+1}: {model_data.get(f'l{idx}_biases', [])[j]}i128," for j in range(
+                    output_size)]
+            )
+
+            layer_inits.append(
+                f"{indentation*3}l{idx}: L{idx} {{\n{weights}\n{biases}\n{indentation*3}}},")
+            idx += 1
+
+        # Initialization for output layer
+        output_dim = len(model_data.get('lo_biases', []))
+        prev_layer_size = len(model_data.get('lo_weights', [])) // output_dim
+
+        output_weights = "\n".join(
+            [f"{indentation*4}i{i+1}_o{j+1}: {model_data.get('lo_weights', [])[i*output_dim + j]}i128," for i in range(
+                prev_layer_size) for j in range(output_dim)]
+        )
+        output_biases = "\n".join(
+            [f"{indentation*4}b{j+1}: {model_data.get('lo_biases', [])[j]}i128," for j in range(
+                output_dim)]
+        )
+        layer_inits.append(
+            f"{indentation*3}lo: Lo {{\n{output_weights}\n{output_biases}\n{indentation*3}}},")
+
+        return "\n".join(layer_inits)
 
     # Helper function to generate layer weights and biases
     def generate_layer_struct(layer_idx, input_size, output_size):
@@ -39,28 +79,41 @@ def generate_nn_code(input_dim, hidden_dims, output_dim):
 
         return computation
 
+    # Generate the model initialization
+    model_initialization = f"{indentation*2}let model: NeuralNet = NeuralNet {{\n"
+    model_initialization += generate_model_initialization()
+    model_initialization += f"\n{indentation*2}}};"
+
     # Generate the input struct
     input_struct = f"struct Input {{\n"
     input_struct += "\n".join(
         [f"{indentation*2}i{i+1}: i128," for i in range(input_dim)])
     input_struct += f"\n{indentation}}}"
 
-    # Generate all hidden layer structs and computations
+    # Generate all hidden layer structs and computations based on model_data
     layer_structs = []
     layer_computations = []
+    idx = 1
     prev_layer_size = input_dim
-    for idx, layer_size in enumerate(hidden_dims, start=1):
-        layer_structs.append(generate_layer_struct(
-            idx, prev_layer_size, layer_size))
-        layer_computations.append(generate_layer_computation(
-            idx, prev_layer_size, layer_size, idx-1 if idx > 1 else None))
-        prev_layer_size = layer_size
 
-    # Generate output layer structs and computations
+    while f'l{idx}_weights' in model_data and f'l{idx}_biases' in model_data:
+        output_size = len(model_data.get(f'l{idx}_biases', []))
+        input_size = len(model_data.get(f'l{idx}_weights', [])) // output_size
+
+        layer_structs.append(generate_layer_struct(
+            idx, input_size, output_size))
+        layer_computations.append(generate_layer_computation(
+            idx, input_size, output_size, idx-1 if idx > 1 else None))
+
+        prev_layer_size = output_size
+        idx += 1
+
+    # Generate output layer struct and computation
+    output_size = len(model_data.get('lo_biases', []))
     layer_structs.append(generate_layer_struct(
-        'o', prev_layer_size, output_dim))
+        'o', prev_layer_size, output_size))
     layer_computations.append(generate_layer_computation(
-        'o', prev_layer_size, output_dim, len(hidden_dims), is_output=True))
+        'o', prev_layer_size, output_size, idx-1, is_output=True))
 
     # Argmax computation for output
     conditions = "\n".join(
@@ -103,7 +156,8 @@ def generate_nn_code(input_dim, hidden_dims, output_dim):
     }}
 
     // The main function that takes input and produces an output
-    transition compute(model: NeuralNet, data: Input) -> u8 {{
+    transition compute(data: Input) -> u8 {{
+{model_initialization}
 {layer_computations_text}
         return arg_max({output_val_list});
     }}
@@ -112,7 +166,8 @@ def generate_nn_code(input_dim, hidden_dims, output_dim):
         input_struct=input_struct,
         layer_structs_text="\n".join(layer_structs),
         layers_list=',\n'.join(
-            [f'{indentation*2}l{idx}: L{idx}' for idx in range(1, len(hidden_dims) + 1)]),
+            [f'{indentation*2}l{idx}: L{idx}' for idx in range(1, len(model_data) // 2)]),
+        model_initialization=model_initialization,
         layer_computations_text="\n".join(layer_computations),
         output_val_list=', '.join([f'val_lo_{i+1}' for i in range(output_dim)])
     )
@@ -125,8 +180,6 @@ if __name__ == "__main__":
         description="Generate Aleo code for a single layer neural network.")
     parser.add_argument('--input_dim', type=int,
                         help="The dimension of the input.")
-    parser.add_argument("--hidden_dims", nargs='*', type=int,
-                        help="Dimensions of each hidden layer, separated by spaces. For example: 10 10 for two hidden layers with 10 neurons each.")
     parser.add_argument('--output_dim', type=int,
                         help="The dimension of the output.")
     parser.add_argument('--output_file', type=str, default="main.leo",
@@ -134,8 +187,15 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    model_data = {
+        'l1_weights': [987797, -1567549, -433045, 1688138],
+        'l1_biases': [-717782258987, -642483949661],
+        'lo_weights': [1524639, 1046204, -1158736, -1290833],
+        'lo_biases': [-579641819000244096, -199355810880661024]
+    }
+
     aleo_code = generate_nn_code(
-        args.input_dim, args.hidden_dims, args.output_dim)
+        args.input_dim, args.output_dim, model_data)
 
     with open(args.output_file, 'w') as f:
         f.write(aleo_code)
