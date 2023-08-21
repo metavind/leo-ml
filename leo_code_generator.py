@@ -2,7 +2,7 @@ import argparse
 import json
 
 
-def generate_nn_code(input_dim, output_dim, model_data):
+def generate_nn_code(program_name, input_dim, output_dim, model_data):
     indentation = "    "
 
     # Helper function to generate the explicit model initialization
@@ -130,7 +130,7 @@ def generate_nn_code(input_dim, output_dim, model_data):
     """
 
     # Composing the final Aleo code
-    code = """program nn.aleo {{
+    code = """program {program_name}.aleo {{
     // Neural Network Multi Layer Model
 
     // Define the ReLU activation function
@@ -163,6 +163,7 @@ def generate_nn_code(input_dim, output_dim, model_data):
         return arg_max({output_val_list}) - 1u8;
     }}
 }}""".format(
+        program_name=program_name,
         arg_max_function=arg_max_function,
         input_struct=input_struct,
         layer_structs_text="\n".join(layer_structs),
@@ -187,6 +188,8 @@ if __name__ == "__main__":
                         help="The dimension of the output.")
     parser.add_argument('--output_file', type=str, default="src/main.leo",
                         help="The file to write the Aleo code to.")
+    parser.add_argument('--program_name', type=str,
+                        default="mnist_fab66aa01347d3f11a1646894", help="The name of the program.")
 
     args = parser.parse_args()
 
@@ -195,7 +198,7 @@ if __name__ == "__main__":
         model_data = json.load(json_file)
 
     aleo_code = generate_nn_code(
-        args.input_dim, args.output_dim, model_data)
+        args.program_name, args.input_dim, args.output_dim, model_data)
 
     with open(args.output_file, 'w') as f:
         f.write(aleo_code)
