@@ -2,8 +2,13 @@ import argparse
 import json
 
 
-def generate_nn_code(program_name, input_dim, output_dim, model_data):
+def generate_nn_code(program_name, model_data):
     indentation = "    "
+
+    # Infer input_dim and output_dim from model_data
+    input_dim = len(model_data.get('l1_weights', [])
+                    ) // len(model_data.get('l1_biases', []))
+    output_dim = len(model_data.get('lo_biases', []))
 
     # Helper function to generate the explicit model initialization
     def generate_model_initialization():
@@ -180,16 +185,12 @@ def generate_nn_code(program_name, input_dim, output_dim, model_data):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate Aleo code for a multi layer neural network.")
-    parser.add_argument('--input_dim', type=int,
-                        help="The dimension of the input.")
+    parser.add_argument('--program_name', type=str,
+                        required=True, help="The name of the program.")
     parser.add_argument('--model_file', type=str,
                         help="The file containing the model data.")
-    parser.add_argument('--output_dim', type=int,
-                        help="The dimension of the output.")
     parser.add_argument('--output_file', type=str, default="src/main.leo",
                         help="The file to write the Aleo code to.")
-    parser.add_argument('--program_name', type=str,
-                        default="mnist_fab66aa01347d3f11a1646894", help="The name of the program.")
 
     args = parser.parse_args()
 
@@ -198,7 +199,7 @@ if __name__ == "__main__":
         model_data = json.load(json_file)
 
     aleo_code = generate_nn_code(
-        args.program_name, args.input_dim, args.output_dim, model_data)
+        args.program_name, model_data)
 
     with open(args.output_file, 'w') as f:
         f.write(aleo_code)
