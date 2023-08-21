@@ -194,13 +194,6 @@ if __name__ == "__main__":
     with open(args.model_file) as json_file:
         model_data = json.load(json_file)
 
-    # model_data = {
-    #     'l1_weights': [987797, -1567549, -433045, 1688138],
-    #     'l1_biases': [-717782258987, -642483949661],
-    #     'lo_weights': [1524639, 1046204, -1158736, -1290833],
-    #     'lo_biases': [-579641819000244096, -199355810880661024]
-    # }
-
     aleo_code = generate_nn_code(
         args.input_dim, args.output_dim, model_data)
 
