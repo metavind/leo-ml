@@ -22,7 +22,7 @@ def generate_nn_code(input_dim, hidden_dims, output_dim):
             inputs = [
                 f"val_l{prev_layer_idx}_{i+1}" for i in range(input_size)]
         else:
-            inputs = [f"input{i+1}" for i in range(input_size)]
+            inputs = [f"data.i{i+1}" for i in range(input_size)]
 
         computation = "\n".join(
             [f"{indentation*2}let val_l{layer_idx}_{j+1}: i32 = relu(" +
@@ -30,6 +30,12 @@ def generate_nn_code(input_dim, hidden_dims, output_dim):
              f" + model.l{layer_idx}.l{layer_idx}_b{j+1});" for j in range(output_size)]
         )
         return computation
+
+    # Generate the input struct
+    input_struct = f"{indentation}struct Input {{\n"
+    input_struct += "\n".join(
+        [f"{indentation*2}i{i+1}: i32," for i in range(input_dim)])
+    input_struct += f"\n{indentation}}}"
 
     # Generate all hidden layer structs and computations
     layer_structs = []
@@ -76,6 +82,9 @@ def generate_nn_code(input_dim, hidden_dims, output_dim):
 
     {arg_max_function}
 
+    // Input struct
+    {input_struct}
+
     // Layer structs
 {layer_structs_text}
 
@@ -86,16 +95,16 @@ def generate_nn_code(input_dim, hidden_dims, output_dim):
     }}
 
     // The main function that takes input and produces an output
-    transition compute(model: NeuralNet, {input_list}) -> u8 {{
+    transition compute(model: NeuralNet, data: Input) -> u8 {{
 {layer_computations_text}
         return arg_max({output_val_list});
     }}
 }}""".format(
         arg_max_function=arg_max_function,
+        input_struct=input_struct,
         layer_structs_text="\n".join(layer_structs),
         layers_list=',\n'.join(
             [f'{indentation*2}l{idx}: L{idx}' for idx in range(1, len(hidden_dims) + 1)]),
-        input_list=', '.join([f'input{i+1}: i32' for i in range(input_dim)]),
         layer_computations_text="\n".join(layer_computations),
         output_val_list=', '.join([f'val_lo_{i+1}' for i in range(output_dim)])
     )
