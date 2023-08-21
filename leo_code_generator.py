@@ -1,117 +1,52 @@
 import argparse
 
 
-# def generate_nn_code(input_dim, hidden_dims, output_dim):
-#     indentation = "    "
-#     hidden_neurons = hidden_dims[0]
-
-#     # Hidden Layer weights and biases
-#     hidden_weights = "\n".join(
-#         [f"{indentation*2}l1_i{i+1}_o{j+1}: i32," for i in range(input_dim) for j in range(hidden_neurons)])
-#     hidden_biases = "\n".join(
-#         [f"{indentation*2}l1_b{j+1}: i32," for j in range(hidden_neurons)])
-
-#     # Output Layer weights and biases
-#     output_weights = "\n".join(
-#         [f"{indentation*2}lo_i{j+1}_o{k+1}: i32," for k in range(output_dim) for j in range(hidden_neurons)])
-#     output_biases = "\n".join(
-#         [f"{indentation*2}lo_b{k+1}: i32," for k in range(output_dim)])
-
-#     # Computation for the hidden layer
-#     hidden_computation = "\n".join(
-#         [f"{indentation*2}let val_l1_{j+1}: i32 = relu(" +
-#          " + ".join([f'model.l1.l1_i{i+1}_o{j+1} * input{i+1}' for i in range(input_dim)]) +
-#          f" + model.l1.l1_b{j+1});" for j in range(hidden_neurons)])
-
-#     # Computation for the output layer
-#     output_computation = "\n".join(
-#         [f"{indentation*2}let val_o_{k+1}: i32 = relu(" +
-#          " + ".join([f'model.o.lo_i{j+1}_o{k+1} * val_l1_{j+1}' for j in range(hidden_neurons)]) +
-#          f" + model.o.lo_b{k+1});" for k in range(output_dim)])
-
-#     # Argmax computation for output
-#     conditions = "\n".join(
-#         [f"{indentation*2}if val_o_{i+1} > max_val {{\n{indentation*3}max_val = val_o_{i+1};\n{indentation*3}max_idx = {i+1}u8;\n{indentation*2}}}" for i in range(output_dim)])
-
-#     arg_max_function = f"""
-#     function arg_max({', '.join([f'val_o_{i+1}: i32' for i in range(output_dim)])}) -> u8 {{
-# {indentation*2}let max_val: i32 = val_o_1;
-# {indentation*2}let max_idx: u8 = 1u8;
-# {conditions}
-# {indentation*2}return max_idx;
-#     }}
-#     """
-
-#     # Composing the final Aleo code
-#     code = f"""program nn.aleo {{
-#     // Neural Network Single Layer Model
-
-#     // Define the ReLU activation function
-#     function relu(x: i32) -> i32 {{
-#         if x > 0i32 {{
-#             return x;
-#         }} else {{
-#             return 0i32;
-#         }}
-#     }}
-
-#     {arg_max_function}
-
-#     // Hidden Layer weights and biases
-#     struct L1 {{
-# {hidden_weights}
-# {hidden_biases}
-#     }}
-
-#     // Output Layer weights and biases
-#     struct O {{
-# {output_weights}
-# {output_biases}
-#     }}
-
-#     // Neural Network consisting of Hidden and Output Layers
-#     struct NeuralNet {{
-#         l1: L1,
-#         o: O,
-#     }}
-
-#     // The main function that takes input and produces an output
-#     transition compute({', '.join([f'input{i+1}: i32' for i in range(input_dim)])}, model: NeuralNet) -> u8 {{
-# {hidden_computation}
-# {output_computation}
-#         return arg_max({', '.join([f'val_o_{i+1}' for i in range(output_dim)])});
-#     }}
-# }}"""
-
-#     return code
-
 def generate_nn_code(input_dim, hidden_dims, output_dim):
     indentation = "    "
 
-    # Layer 1 (L1) weights and biases
-    l1_neurons = hidden_dims[0]
-    l1_weights = "\n".join(
-        [f"{indentation*2}l1_i{i+1}_o{j+1}: i32," for i in range(input_dim) for j in range(l1_neurons)])
-    l1_biases = "\n".join(
-        [f"{indentation*2}l1_b{j+1}: i32," for j in range(l1_neurons)])
+    # Helper function to generate layer weights and biases
+    def generate_layer_struct(layer_idx, input_size, output_size):
+        weights = "\n".join(
+            [f"{indentation*2}l{layer_idx}_i{i+1}_o{j+1}: i32," for i in range(
+                input_size) for j in range(output_size)]
+        )
+        biases = "\n".join(
+            [f"{indentation*2}l{layer_idx}_b{j+1}: i32," for j in range(
+                output_size)]
+        )
+        return f"{indentation}struct L{layer_idx} {{\n{weights}\n{biases}\n{indentation}}}"
 
-    # Output Layer (LO) weights and biases
-    lo_weights = "\n".join(
-        [f"{indentation*2}lo_i{j+1}_o{k+1}: i32," for k in range(output_dim) for j in range(l1_neurons)])
-    lo_biases = "\n".join(
-        [f"{indentation*2}lo_b{k+1}: i32," for k in range(output_dim)])
+    # Helper function to generate layer computation
+    def generate_layer_computation(layer_idx, input_size, output_size, prev_layer_idx=None):
+        if prev_layer_idx:
+            inputs = [
+                f"val_l{prev_layer_idx}_{i+1}" for i in range(input_size)]
+        else:
+            inputs = [f"input{i+1}" for i in range(input_size)]
 
-    # Computation for the Layer 1 (L1)
-    l1_computation = "\n".join(
-        [f"{indentation*2}let val_l1_{j+1}: i32 = relu(" +
-         " + ".join([f'model.l1.l1_i{i+1}_o{j+1} * input{i+1}' for i in range(input_dim)]) +
-         f" + model.l1.l1_b{j+1});" for j in range(l1_neurons)])
+        computation = "\n".join(
+            [f"{indentation*2}let val_l{layer_idx}_{j+1}: i32 = relu(" +
+             " + ".join([f'model.l{layer_idx}.l{layer_idx}_i{i+1}_o{j+1} * {inputs[i]}' for i in range(input_size)]) +
+             f" + model.l{layer_idx}.l{layer_idx}_b{j+1});" for j in range(output_size)]
+        )
+        return computation
 
-    # Computation for the output layer (LO)
-    lo_computation = "\n".join(
-        [f"{indentation*2}let val_o_{k+1}: i32 = relu(" +
-         " + ".join([f'model.o.lo_i{j+1}_o{k+1} * val_l1_{j+1}' for j in range(l1_neurons)]) +
-         f" + model.o.lo_b{k+1});" for k in range(output_dim)])
+    # Generate all hidden layer structs and computations
+    layer_structs = []
+    layer_computations = []
+    prev_layer_size = input_dim
+    for idx, layer_size in enumerate(hidden_dims, start=1):
+        layer_structs.append(generate_layer_struct(
+            idx, prev_layer_size, layer_size))
+        layer_computations.append(generate_layer_computation(
+            idx, prev_layer_size, layer_size, idx-1 if idx > 1 else None))
+        prev_layer_size = layer_size
+
+    # Generate output layer structs and computations
+    layer_structs.append(generate_layer_struct(
+        'o', prev_layer_size, output_dim))
+    layer_computations.append(generate_layer_computation(
+        'o', prev_layer_size, output_dim, len(hidden_dims)))
 
     # Argmax computation for output
     conditions = "\n".join(
@@ -127,7 +62,7 @@ def generate_nn_code(input_dim, hidden_dims, output_dim):
     """
 
     # Composing the final Aleo code
-    code = f"""program nn.aleo {{
+    code = """program nn.aleo {{
     // Neural Network Multi Layer Model
 
     // Define the ReLU activation function
@@ -141,31 +76,29 @@ def generate_nn_code(input_dim, hidden_dims, output_dim):
 
     {arg_max_function}
 
-    // Layer 1 weights and biases
-    struct L1 {{
-{l1_weights}
-{l1_biases}
-    }}
+    // Layer structs
+{layer_structs_text}
 
-    // Output Layer weights and biases
-    struct O {{
-{lo_weights}
-{lo_biases}
-    }}
-
-    // Neural Network consisting of L1 and Output Layers
+    // Neural Network consisting of multiple layers
     struct NeuralNet {{
-        l1: L1,
-        o: O,
+{layers_list},
+        lo: Lo,
     }}
 
     // The main function that takes input and produces an output
-    transition compute({', '.join([f'input{i+1}: i32' for i in range(input_dim)])}, model: NeuralNet) -> u8 {{
-{l1_computation}
-{lo_computation}
-        return arg_max({', '.join([f'val_o_{i+1}' for i in range(output_dim)])});
+    transition compute(model: NeuralNet, {input_list}) -> u8 {{
+{layer_computations_text}
+        return arg_max({output_val_list});
     }}
-}}"""
+}}""".format(
+        arg_max_function=arg_max_function,
+        layer_structs_text="\n".join(layer_structs),
+        layers_list=',\n'.join(
+            [f'{indentation*2}l{idx}: L{idx}' for idx in range(1, len(hidden_dims) + 1)]),
+        input_list=', '.join([f'input{i+1}: i32' for i in range(input_dim)]),
+        layer_computations_text="\n".join(layer_computations),
+        output_val_list=', '.join([f'val_lo_{i+1}' for i in range(output_dim)])
+    )
 
     return code
 
