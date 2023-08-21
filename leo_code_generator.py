@@ -7,11 +7,11 @@ def generate_nn_code(input_dim, hidden_dims, output_dim):
     # Helper function to generate layer weights and biases
     def generate_layer_struct(layer_idx, input_size, output_size):
         weights = "\n".join(
-            [f"{indentation*2}l{layer_idx}_i{i+1}_o{j+1}: i128," for j in range(
+            [f"{indentation*2}i{i+1}_o{j+1}: i128," for j in range(
                 output_size) for i in range(input_size)]
         )
         biases = "\n".join(
-            [f"{indentation*2}l{layer_idx}_b{j+1}: i128," for j in range(
+            [f"{indentation*2}b{j+1}: i128," for j in range(
                 output_size)]
         )
         return f"{indentation}struct L{layer_idx} {{\n{weights}\n{biases}\n{indentation}}}"
@@ -27,14 +27,14 @@ def generate_nn_code(input_dim, hidden_dims, output_dim):
         if is_output:
             computation = "\n".join(
                 [f"{indentation*2}let val_l{layer_idx}_{j+1}: i128 = " +
-                 " + ".join([f'model.l{layer_idx}.l{layer_idx}_i{i+1}_o{j+1} * {inputs[i]}' for i in range(input_size)]) +
-                 f" + model.l{layer_idx}.l{layer_idx}_b{j+1};" for j in range(output_size)]
+                 " + ".join([f'model.l{layer_idx}.i{i+1}_o{j+1} * {inputs[i]}' for i in range(input_size)]) +
+                 f" + model.l{layer_idx}.b{j+1};" for j in range(output_size)]
             )
         else:
             computation = "\n".join(
                 [f"{indentation*2}let val_l{layer_idx}_{j+1}: i128 = relu(" +
-                 " + ".join([f'model.l{layer_idx}.l{layer_idx}_i{i+1}_o{j+1} * {inputs[i]}' for i in range(input_size)]) +
-                 f" + model.l{layer_idx}.l{layer_idx}_b{j+1});" for j in range(output_size)]
+                 " + ".join([f'model.l{layer_idx}.i{i+1}_o{j+1} * {inputs[i]}' for i in range(input_size)]) +
+                 f" + model.l{layer_idx}.b{j+1});" for j in range(output_size)]
             )
 
         return computation
