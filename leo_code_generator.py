@@ -32,7 +32,7 @@ def generate_nn_code(input_dim, hidden_dims, output_dim):
         return computation
 
     # Generate the input struct
-    input_struct = f"{indentation}struct Input {{\n"
+    input_struct = f"struct Input {{\n"
     input_struct += "\n".join(
         [f"{indentation*2}i{i+1}: i32," for i in range(input_dim)])
     input_struct += f"\n{indentation}}}"
