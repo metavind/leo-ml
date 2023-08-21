@@ -63,7 +63,7 @@ def generate_nn_code(input_dim, output_dim, model_data):
             inputs = [
                 f"val_l{prev_layer_idx}_{i+1}" for i in range(input_size)]
         else:
-            inputs = [f"data.i{i+1}" for i in range(input_size)]
+            inputs = [f"data.in{i+1}" for i in range(input_size)]
 
         if is_output:
             computation = "\n".join(
@@ -88,7 +88,7 @@ def generate_nn_code(input_dim, output_dim, model_data):
     # Generate the input struct
     input_struct = f"struct Input {{\n"
     input_struct += "\n".join(
-        [f"{indentation*2}i{i+1}: i128," for i in range(input_dim)])
+        [f"{indentation*2}in{i+1}: i128," for i in range(input_dim)])
     input_struct += f"\n{indentation}}}"
 
     # Generate all hidden layer structs and computations based on model_data
