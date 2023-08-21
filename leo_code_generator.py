@@ -1,4 +1,5 @@
 import argparse
+import json
 
 
 def generate_nn_code(input_dim, output_dim, model_data):
@@ -15,12 +16,12 @@ def generate_nn_code(input_dim, output_dim, model_data):
                 f'l{idx}_weights', [])) // input_size
 
             weights = "\n".join(
-                [f"{indentation*4}i{i+1}_o{j+1}: {model_data.get(f'l{idx}_weights', [])[i*output_size + j]}i128," for i in range(
-                    input_size) for j in range(output_size)]
+                [f"{indentation*4}i{i+1}_o{j+1}: {model_data.get(f'l{idx}_weights', [])[i*output_size + j]}i128," for j in range(
+                    input_size) for i in range(output_size)]
             )
             biases = "\n".join(
                 [f"{indentation*4}b{j+1}: {model_data.get(f'l{idx}_biases', [])[j]}i128," for j in range(
-                    output_size)]
+                    input_size)]
             )
 
             layer_inits.append(
@@ -180,6 +181,8 @@ if __name__ == "__main__":
         description="Generate Aleo code for a single layer neural network.")
     parser.add_argument('--input_dim', type=int,
                         help="The dimension of the input.")
+    parser.add_argument('--model_file', type=str,
+                        help="The file containing the model data.")
     parser.add_argument('--output_dim', type=int,
                         help="The dimension of the output.")
     parser.add_argument('--output_file', type=str, default="main.leo",
@@ -187,12 +190,16 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    model_data = {
-        'l1_weights': [987797, -1567549, -433045, 1688138],
-        'l1_biases': [-717782258987, -642483949661],
-        'lo_weights': [1524639, 1046204, -1158736, -1290833],
-        'lo_biases': [-579641819000244096, -199355810880661024]
-    }
+    # Opening JSON file
+    with open(args.model_file) as json_file:
+        model_data = json.load(json_file)
+
+    # model_data = {
+    #     'l1_weights': [987797, -1567549, -433045, 1688138],
+    #     'l1_biases': [-717782258987, -642483949661],
+    #     'lo_weights': [1524639, 1046204, -1158736, -1290833],
+    #     'lo_biases': [-579641819000244096, -199355810880661024]
+    # }
 
     aleo_code = generate_nn_code(
         args.input_dim, args.output_dim, model_data)
