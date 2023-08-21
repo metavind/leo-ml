@@ -179,7 +179,7 @@ def generate_nn_code(program_name, input_dim, output_dim, model_data):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Generate Aleo code for a single layer neural network.")
+        description="Generate Aleo code for a multi layer neural network.")
     parser.add_argument('--input_dim', type=int,
                         help="The dimension of the input.")
     parser.add_argument('--model_file', type=str,
