@@ -157,7 +157,7 @@ def generate_nn_code(input_dim, output_dim, model_data):
     }}
 
     // The main function that takes input and produces an output
-    transition compute(data: Input) -> u8 {{
+    transition compute(data: Input) -> public u8 {{
 {model_initialization}
 {layer_computations_text}
         return arg_max({output_val_list}) - 1u8;
