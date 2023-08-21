@@ -160,7 +160,7 @@ def generate_nn_code(input_dim, output_dim, model_data):
     transition compute(data: Input) -> u8 {{
 {model_initialization}
 {layer_computations_text}
-        return arg_max({output_val_list});
+        return arg_max({output_val_list}) - 1u8;
     }}
 }}""".format(
         arg_max_function=arg_max_function,
