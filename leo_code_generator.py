@@ -33,8 +33,8 @@ def generate_nn_code(input_dim, output_dim, model_data):
         input_size = len(model_data.get('lo_weights', [])) // output_size
 
         output_weights = "\n".join(
-            [f"{indentation*4}i{i+1}_o{j+1}: {model_data.get('lo_weights', [])[j*output_size + i]}i128," for i in range(
-                input_size) for j in range(output_size)]
+            [f"{indentation*4}i{i+1}_o{j+1}: {model_data.get('lo_weights', [])[j*input_size + i]}i128," for j in range(
+                output_size) for i in range(input_size)]
         )
         output_biases = "\n".join(
             [f"{indentation*4}b{j+1}: {model_data.get('lo_biases', [])[j]}i128," for j in range(
@@ -185,7 +185,7 @@ if __name__ == "__main__":
                         help="The file containing the model data.")
     parser.add_argument('--output_dim', type=int,
                         help="The dimension of the output.")
-    parser.add_argument('--output_file', type=str, default="main.leo",
+    parser.add_argument('--output_file', type=str, default="src/main.leo",
                         help="The file to write the Aleo code to.")
 
     args = parser.parse_args()
