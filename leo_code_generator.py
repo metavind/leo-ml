@@ -1,3 +1,47 @@
+"""
+Neural Network Code Generator for Aleo
+
+Description:
+    This script provides functionality to automatically generate Aleo code
+    for representing and computing neural network models. The generated Aleo
+    code will include data structures for the neural network's weights and biases,
+    as well as the necessary logic to compute forward passes through the network.
+
+Inputs:
+    - A JSON file containing the neural network's weights and biases. The JSON
+      should have keys of the form 'lX_weights' and 'lX_biases', where X is
+      the layer number (starting from 1).
+
+Outputs:
+    - An Aleo source code file (`.leo`) that represents the given neural network
+      and provides a `compute` transition function that takes input data and
+      produces an output.
+
+Usage:
+    Run the script and provide the necessary command-line arguments:
+    --model_data: Path to the input JSON file containing model data.
+    --output: Path to the output Aleo code file (default is "src/main.leo").
+    --program_name: Name of the Aleo program.
+
+Example:
+    python leo_code_generator.py --model_data model.json --program_name nn
+
+How the Code is Generated:
+    1. The script first parses the JSON input to determine the structure of
+       the neural network, including the number of layers and their sizes.
+    2. For each layer in the model, the script generates a corresponding
+       Aleo struct to represent the weights and biases.
+    3. The script generates the `compute` transition function in Aleo that
+       performs the forward pass computation using the weights and biases
+       defined in the structs.
+    4. The output of the neural network is computed using the ReLU activation
+       function for all layers except the output layer.
+    5. Finally, the code computes the `arg_max` of the output layer to determine
+       the index of the maximum value, which serves as the network's prediction.
+       (this is zero-indexed, so the final output is subtracted by 1)
+
+"""
+
 import argparse
 import json
 
