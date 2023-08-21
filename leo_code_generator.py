@@ -46,6 +46,55 @@ import argparse
 import json
 
 
+def generate_documentation_header(author="metavind", creation_date="21/08/2023"):
+    """
+    Generate the documentation header for the Aleo Neural Network program.
+
+    Parameters:
+    - author (str): Name of the author.
+    - creation_date (str): Date of creation.
+
+    Returns:
+    - str: Documentation header for the Aleo program.
+    """
+
+    header = f"""
+/**
+Neural Network Implementation in Aleo
+======================================
+
+Purpose:
+--------
+This script defines a neural network model and its forward pass computation in Aleo's programming language.
+
+Inputs:
+-------
+- Input: A struct containing two integer values representing the input values to the network.
+
+Outputs:
+--------
+- An unsigned 8-bit integer representing the index of the maximum value from the output layer. 
+    We consider a classification problem, so the index of the maximum value is the network's prediction.
+
+How the Code is Generated:
+--------------------------
+1. The script first defines helper functions like the relu activation function and the arg_max function.
+2. It then defines the input structure and layer structures for the neural network.
+3. The NeuralNet struct represents the complete neural network model consisting of the defined layers.
+4. The transition `compute` function represents the forward pass of the neural network. It computes the result for each layer using weights, biases, and the relu activation function.
+5. Finally, the code computes the `arg_max` of the output layer to determine the index of the maximum value, which serves as the network's prediction.
+
+Note:
+-----
+The weights and biases embedded within the script are sample values for classification task on circle dataset and should be replaced with the actual trained values for other use cases.
+
+@author: {author}
+@date: {creation_date}
+**/
+"""
+    return header.strip()
+
+
 def generate_nn_code(program_name, model_data):
     indentation = "    "
 
@@ -138,8 +187,7 @@ def generate_nn_code(program_name, model_data):
     output_dim = len(model_data.get(f'l{total_layers}_biases', []))
     conditions = "\n".join(
         [f"{indentation*2}if val_{i+1} > max_val {{\n{indentation*3}max_val = val_{i+1};\n{indentation*3}max_idx = {i+1}u8;\n{indentation*2}}}" for i in range(1, output_dim)])
-    arg_max_function = f"""
-    function arg_max({', '.join([f'val_{i+1}: i128' for i in range(output_dim)])}) -> u8 {{
+    arg_max_function = f"""function arg_max({', '.join([f'val_{i+1}: i128' for i in range(output_dim)])}) -> u8 {{
 {indentation*2}let max_val: i128 = val_1;
 {indentation*2}let max_idx: u8 = 1u8;
 {conditions}
@@ -148,7 +196,7 @@ def generate_nn_code(program_name, model_data):
     """
 
     # Composing the final Aleo code
-    code = """program {program_name}.aleo {{
+    code = """\nprogram {program_name}.aleo {{
     // Neural Network Multi Layer Model
 
     // Define the ReLU activation function
@@ -160,6 +208,7 @@ def generate_nn_code(program_name, model_data):
         }}
     }}
 
+    // Define the arg_max function
     {arg_max_function}
 
     // Input struct
@@ -175,7 +224,11 @@ def generate_nn_code(program_name, model_data):
 
     // The main function that takes input and produces an output
     transition compute(data: Input) -> public u8 {{
+
+        // Initialize the model
 {model_initialization}
+
+        // Compute the output
 {layer_computations_text}
         return arg_max({output_val_list}) - 1u8;
     }}
@@ -209,9 +262,11 @@ if __name__ == "__main__":
     with open(args.model_data, 'r') as f:
         model_data = json.load(f)
 
+    documentation = generate_documentation_header()
     code = generate_nn_code(args.program_name, model_data)
 
     with open(args.output, 'w') as f:
+        f.write(documentation)
         f.write(code)
 
     print(f"Generated Aleo program at {args.output}")
