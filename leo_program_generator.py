@@ -19,12 +19,12 @@ Outputs:
 
 Usage:
     Run the script and provide the necessary command-line arguments:
-    --model_data: Path to the input JSON file containing model data.
+    --model_parameters: Path to the input JSON file containing model parameters.
     --output: Path to the output Aleo code file (default is "src/main.leo").
     --program_name: Name of the Aleo program.
 
 Example:
-    python leo_code_generator.py --model_data model.json --program_name nn
+    python leo_program_generator.py --model_parameters model_parameters.json --program_name nn
 
 How the Code is Generated:
     1. The script first parses the JSON input to determine the structure of
@@ -95,31 +95,31 @@ The weights and biases embedded within the script are sample values for classifi
     return header.strip()
 
 
-def generate_nn_code(program_name, model_data):
+def generate_nn_code(program_name, model_parameters):
     indentation = "    "
 
-    # Infer input_dim and total number of layers from model_data
+    # Infer input_dim and total number of layers from model_parameters
     idx = 1
-    while f'l{idx}_weights' in model_data and f'l{idx}_biases' in model_data:
+    while f'l{idx}_weights' in model_parameters and f'l{idx}_biases' in model_parameters:
         idx += 1
     total_layers = idx - 1
-    input_dim = len(model_data.get('l1_weights', [])
-                    ) // len(model_data.get('l1_biases', []))
+    input_dim = len(model_parameters.get('l1_weights', [])
+                    ) // len(model_parameters.get('l1_biases', []))
 
     # Helper function to generate the explicit model initialization
     def generate_model_initialization():
         layer_inits = []
         for idx in range(1, total_layers + 1):
-            output_size = len(model_data.get(f'l{idx}_biases', []))
-            input_size = len(model_data.get(
+            output_size = len(model_parameters.get(f'l{idx}_biases', []))
+            input_size = len(model_parameters.get(
                 f'l{idx}_weights', [])) // output_size
 
             weights = "\n".join(
-                [f"{indentation*4}i{i+1}_o{j+1}: {model_data.get(f'l{idx}_weights', [])[j*input_size + i]}i128," for j in range(
+                [f"{indentation*4}i{i+1}_o{j+1}: {model_parameters.get(f'l{idx}_weights', [])[j*input_size + i]}i128," for j in range(
                     output_size) for i in range(input_size)]
             )
             biases = "\n".join(
-                [f"{indentation*4}b{j+1}: {model_data.get(f'l{idx}_biases', [])[j]}i128," for j in range(
+                [f"{indentation*4}b{j+1}: {model_parameters.get(f'l{idx}_biases', [])[j]}i128," for j in range(
                     output_size)]
             )
 
@@ -171,12 +171,13 @@ def generate_nn_code(program_name, model_data):
         [f"{indentation*2}in{i+1}: i128," for i in range(input_dim)])
     input_struct += f"\n{indentation}}}"
 
-    # Generate all layer structs and computations based on model_data
+    # Generate all layer structs and computations based on model_parameters
     layer_structs = []
     layer_computations = []
     for idx in range(1, total_layers + 1):
-        output_size = len(model_data.get(f'l{idx}_biases', []))
-        input_size = len(model_data.get(f'l{idx}_weights', [])) // output_size
+        output_size = len(model_parameters.get(f'l{idx}_biases', []))
+        input_size = len(model_parameters.get(
+            f'l{idx}_weights', [])) // output_size
 
         layer_structs.append(generate_layer_struct(
             idx, input_size, output_size))
@@ -184,7 +185,7 @@ def generate_nn_code(program_name, model_data):
             idx, input_size, output_size, idx-1 if idx > 1 else None))
 
     # Argmax computation for final layer
-    output_dim = len(model_data.get(f'l{total_layers}_biases', []))
+    output_dim = len(model_parameters.get(f'l{total_layers}_biases', []))
     conditions = "\n".join(
         [f"{indentation*2}if val_{i+1} > max_val {{\n{indentation*3}max_val = val_{i+1};\n{indentation*3}max_idx = {i+1}u8;\n{indentation*2}}}" for i in range(1, output_dim)])
     arg_max_function = f"""function arg_max({', '.join([f'val_{i+1}: i128' for i in range(output_dim)])}) -> u8 {{
@@ -251,22 +252,22 @@ def generate_nn_code(program_name, model_data):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate Aleo code for Neural Network.")
-    parser.add_argument('--model_data', required=True, type=str,
-                        help='Path to JSON file containing model data.')
-    parser.add_argument('--output', default="src/main.leo", type=str,
+    parser.add_argument('--model_parameters', required=True, type=str,
+                        help='Path to JSON file containing model parameters.')
+    parser.add_argument('--save_path', default="src/main.leo", type=str,
                         help='Path to output Aleo code file.')
     parser.add_argument('--program_name', required=True,
                         type=str, help='Name of the Aleo program.')
     args = parser.parse_args()
 
-    with open(args.model_data, 'r') as f:
-        model_data = json.load(f)
+    with open(args.model_parameters, 'r') as f:
+        model_parameters = json.load(f)
 
     documentation = generate_documentation_header()
-    code = generate_nn_code(args.program_name, model_data)
+    code = generate_nn_code(args.program_name, model_parameters)
 
-    with open(args.output, 'w') as f:
+    with open(args.save_path, 'w') as f:
         f.write(documentation)
         f.write(code)
 
-    print(f"Generated Aleo program at {args.output}")
+    print(f"Generated Aleo program at {args.save_path}")
