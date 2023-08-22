@@ -73,7 +73,7 @@ python leo_program_generator.py --program_name <program_name> --test_samples <pa
 The above command will generate a test script `<program_name>.sh` which can be run using the following command:
 
 ```sh
-./<program_name>.sh
+./test_<program_name>.sh
 ```
 
 The test script will run the generated Aleo program on each test sample and print the output of the Aleo program, along with the expected output from the neural network.
