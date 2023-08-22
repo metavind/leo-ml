@@ -50,7 +50,7 @@ def generate_script(program_name, test_samples_file):
 
         idx = 1
         while f"input{idx}" in test_data and f"output{idx}" in test_data:
-            f.write(f'echo "Test {idx}"\n')
+            f.write(f'\necho "Test {idx}"')
 
             sample = test_data[f"input{idx}"]
             sample_dim = len(sample)
@@ -61,8 +61,7 @@ def generate_script(program_name, test_samples_file):
 
             command = f'''
 leo run -q compute "{{ {input_string} }}" | awk -F"• " '/u8/ {{print "Actual Value   : "$2}}'
-echo "Expected Value : {expected_value}\n"
-            '''
+echo "Expected Value : {expected_value}\n"\n'''
             f.write(command)
             idx += 1
 
