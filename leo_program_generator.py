@@ -16,6 +16,7 @@ Outputs:
     - An Aleo source code file (`.leo`) that represents the given neural network
       and provides a `compute` transition function that takes input data and
       produces an output.
+    - An Aleo program input template (`.in`) that can be used to pass input data.
     - An Aleo program JSON file (`.json`) that provides metadata about the program.
 
 Usage:
@@ -25,7 +26,7 @@ Usage:
     --program_name: Name of the Aleo program.
 
 Example:
-    python leo_program_generator.py --model_parameters model_parameters.json --program_name nn
+    python leo_program_generator.py --program_name nn --model_parameters model_parameters.json
 
 How the Code is Generated:
     1. The script first parses the JSON input to determine the structure of
@@ -45,6 +46,7 @@ How the Code is Generated:
 
 import argparse
 import json
+import os
 
 
 def generate_documentation_header(author="metavind", creation_date="21/08/2023"):
@@ -250,6 +252,29 @@ def generate_nn_code(program_name, model_parameters):
     return code
 
 
+def generate_program_input_template(model_parameters):
+    # Infer input_dim from model_parameters
+    input_dim = len(model_parameters.get('l1_weights', [])
+                    ) // len(model_parameters.get('l1_biases', []))
+
+    # Generate the input names like "in1", "in2", ...
+    inputs = [f"in{i + 1}: ___i128" for i in range(input_dim)]
+
+    # Join the inputs to format them inside the Input struct
+    inputs_str = ", ".join(inputs)
+
+    program_input = f"""// The program input for src/main.leo
+// To pass input data into the "compute" transition we
+// 1. Define the "Input" type.
+// 2. Use brackets `{{ }}` to enclose the struct members.
+// 3. Define each struct member `name : value`.
+[compute]
+data: Input = Input {{ {inputs_str} }};
+"""
+
+    return program_input
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate Aleo code for Neural Network.")
@@ -271,6 +296,13 @@ if __name__ == "__main__":
         f.write(documentation)
         f.write(code)
     print(f"Generated Aleo program code at {args.save_path}")
+
+    program_input_template = generate_program_input_template(model_parameters)
+
+    with open(os.path.join("inputs", f"{args.program_name}.in"), 'w') as f:
+        f.write(program_input_template)
+    print(
+        f"Generated Aleo program input template at inputs/{args.program_name}.in")
 
     json_data = {
         "program": f"{args.program_name}.aleo",
