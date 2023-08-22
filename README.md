@@ -53,12 +53,12 @@ Note: The model_parameters file should be a JSON containing the neural network's
 
 ```json
 {
-    "l1_weights": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
-    "l1_biases": [0.1, 0.2],
-    "l2_weights": [0.1, 0.2, 0.3, 0.4],
-    "l2_biases": [0.1, 0.2],
-    "l3_weights": [0.1, 0.2],
-    "l3_biases": [0.1]
+    "l1_weights": [1, 2, 3, 4, 5, 6],
+    "l1_biases": [1, 2],
+    "l2_weights": [1, 2, 3, 4],
+    "l2_biases": [1, 2],
+    "l3_weights": [1, 2],
+    "l3_biases": [1]
 }
 ```
 
@@ -82,9 +82,9 @@ Note: The test_samples file should be a JSON containing the test samples. The JS
 
 ```json
 {
-    "input1": [0.1, 0.2, 0.3],
-    "output1": 1,
-    "input2": [0.4, 0.5, 0.6],
-    "output2": 0
+    "input1": [1, 2, 3],
+    "output1": 0,
+    "input2": [4, 5, 6],
+    "output2": 1
 }
 ```
