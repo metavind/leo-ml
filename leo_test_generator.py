@@ -45,6 +45,8 @@ def generate_script(program_name, test_samples_file):
 
     file_header = """#!/bin/bash\n"""
 
+    file_header += f"""\necho "Running tests for {program_name} program\n"\n"""
+
     with open(file_name, 'w') as f:
         f.write(file_header)
 

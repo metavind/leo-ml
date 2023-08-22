@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "Running tests for nn program
+"
+
 echo "Test 1"
 leo run -q compute "{ in1: -181267i128, in2: 336834i128 }" | awk -F"• " '/u8/ {print "Actual Value   : "$2}'
 echo "Expected Value : 1u8
