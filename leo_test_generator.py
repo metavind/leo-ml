@@ -5,18 +5,18 @@ This script provides a utility to generate a bash test script for Aleo programs.
 will run the Aleo program with different input values specified in a JSON file and print both the actual
 and expected output values.
 
-The JSON file should have the following structure:
-{
-    "input1": [input_values1],
-    "output1": expected_output1,
-    "input2": [input_values2],
-    "output2": expected_output2,
-    ...
-}
-
 Inputs:
+    - The name of the Aleo program to be tested.
     - A JSON file containing the test samples. The JSON should have keys of the form 
-      'inputX' and 'outputX', where X is the sample number (starting from 1).
+      'inputX' and 'outputX', where X is the sample number (starting from 1). The JSON
+      file should have the following structure:
+        {
+            "input1": [input_values1],
+            "output1": expected_output1,
+            "input2": [input_values2],
+            "output2": expected_output2,
+            ...
+        }
 
 Outputs:
     Generates a bash script named `test_<program_name>.sh`. This script can be executed
