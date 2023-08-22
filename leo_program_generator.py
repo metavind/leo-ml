@@ -73,7 +73,7 @@ Inputs:
 
 Outputs:
 --------
-- An unsigned 8-bit integer representing the index of the maximum value from the output layer. 
+- An unsigned 8-bit integer representing the index of the maximum value from the output layer.
     We consider a classification problem, so the index of the maximum value is the network's prediction.
 
 How the Code is Generated:
