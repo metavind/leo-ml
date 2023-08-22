@@ -16,6 +16,7 @@ Outputs:
     - An Aleo source code file (`.leo`) that represents the given neural network
       and provides a `compute` transition function that takes input data and
       produces an output.
+    - An Aleo program JSON file (`.json`) that provides metadata about the program.
 
 Usage:
     Run the script and provide the necessary command-line arguments:
@@ -269,5 +270,15 @@ if __name__ == "__main__":
     with open(args.save_path, 'w') as f:
         f.write(documentation)
         f.write(code)
+    print(f"Generated Aleo program code at {args.save_path}")
 
-    print(f"Generated Aleo program at {args.save_path}")
+    json_data = {
+        "program": f"{args.program_name}.aleo",
+        "version": "0.0.0",
+        "description": "",
+        "license": "MIT"
+    }
+
+    with open('program.json', 'w') as f:
+        json.dump(json_data, f, indent=4)
+    print("Generated Aleo program json at program.json")
