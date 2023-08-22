@@ -303,14 +303,14 @@ if __name__ == "__main__":
     with open(save_path, 'w') as f:
         f.write(documentation)
         f.write(code)
-    print(f"Generated Aleo program code at {save_path}")
+    print(f"Generated Aleo program code: {save_path}")
 
     program_input_template = generate_program_input_template(model_parameters)
 
     with open(os.path.join("inputs", f"{args.program_name}.in"), 'w') as f:
         f.write(program_input_template)
     print(
-        f"Generated Aleo program input template at inputs/{args.program_name}.in")
+        f"Generated Aleo program input template: inputs/{args.program_name}.in")
 
     json_data = {
         "program": f"{args.program_name}.aleo",
@@ -321,4 +321,4 @@ if __name__ == "__main__":
 
     with open('program.json', 'w') as f:
         json.dump(json_data, f, indent=4)
-    print("Generated Aleo program json at program.json")
+    print("Generated Aleo program json: program.json")
