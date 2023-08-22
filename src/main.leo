@@ -1,3 +1,35 @@
+/**
+Neural Network Implementation in Aleo
+======================================
+
+Purpose:
+--------
+This script defines a neural network model and its forward pass computation in Aleo's programming language.
+
+Inputs:
+-------
+- Input: A struct containing two integer values representing the input values to the network.
+
+Outputs:
+--------
+- An unsigned 8-bit integer representing the index of the maximum value from the output layer.
+    We consider a classification problem, so the index of the maximum value is the network's prediction.
+
+How the Code is Generated:
+--------------------------
+1. The script first defines helper functions like the relu activation function and the arg_max function.
+2. It then defines the input structure and layer structures for the neural network.
+3. The NeuralNet struct represents the complete neural network model consisting of the defined layers.
+4. The transition `compute` function represents the forward pass of the neural network. It computes the result for each layer using weights, biases, and the relu activation function.
+5. Finally, the code computes the `arg_max` of the output layer to determine the index of the maximum value, which serves as the network's prediction.
+
+Note:
+-----
+The weights and biases embedded within the script are sample values for classification task on circle dataset and should be replaced with the actual trained values for other use cases.
+
+@author: metavind
+@date: 21/08/2023
+**/
 program nn.aleo {
     // Neural Network Multi Layer Model
 
@@ -10,7 +42,7 @@ program nn.aleo {
         }
     }
 
-    
+    // Define the arg_max function
     function arg_max(val_1: i128, val_2: i128) -> u8 {
         let max_val: i128 = val_1;
         let max_idx: u8 = 1u8;
@@ -24,8 +56,8 @@ program nn.aleo {
 
     // Input struct
     struct Input {
-        i1: i128,
-        i2: i128,
+        in1: i128,
+        in2: i128,
     }
 
     // Layer structs
@@ -61,7 +93,7 @@ program nn.aleo {
         b9: i128,
         b10: i128,
     }
-    struct Lo {
+    struct L2 {
         i1_o1: i128,
         i2_o1: i128,
         i3_o1: i128,
@@ -89,11 +121,13 @@ program nn.aleo {
     // Neural Network consisting of multiple layers
     struct NeuralNet {
         l1: L1,
-        lo: Lo,
+        l2: L2,
     }
 
     // The main function that takes input and produces an output
-    transition compute(data: Input) -> u8 {
+    transition compute(data: Input) -> public u8 {
+
+        // Initialize the model
         let model: NeuralNet = NeuralNet {
             l1: L1 {
                 i1_o1: -201799i128,
@@ -127,7 +161,7 @@ program nn.aleo {
                 b9: -657531619072i128,
                 b10: -634221017361i128,
             },
-            lo: Lo {
+            l2: L2 {
                 i1_o1: -167334i128,
                 i2_o1: 1135549i128,
                 i3_o1: -176126i128,
@@ -152,18 +186,20 @@ program nn.aleo {
                 b2: 611362576484680192i128,
             },
         };
-        let val_l1_1: i128 = relu(model.l1.i1_o1 * data.i1 + model.l1.i2_o1 * data.i2 + model.l1.b1);
-        let val_l1_2: i128 = relu(model.l1.i1_o2 * data.i1 + model.l1.i2_o2 * data.i2 + model.l1.b2);
-        let val_l1_3: i128 = relu(model.l1.i1_o3 * data.i1 + model.l1.i2_o3 * data.i2 + model.l1.b3);
-        let val_l1_4: i128 = relu(model.l1.i1_o4 * data.i1 + model.l1.i2_o4 * data.i2 + model.l1.b4);
-        let val_l1_5: i128 = relu(model.l1.i1_o5 * data.i1 + model.l1.i2_o5 * data.i2 + model.l1.b5);
-        let val_l1_6: i128 = relu(model.l1.i1_o6 * data.i1 + model.l1.i2_o6 * data.i2 + model.l1.b6);
-        let val_l1_7: i128 = relu(model.l1.i1_o7 * data.i1 + model.l1.i2_o7 * data.i2 + model.l1.b7);
-        let val_l1_8: i128 = relu(model.l1.i1_o8 * data.i1 + model.l1.i2_o8 * data.i2 + model.l1.b8);
-        let val_l1_9: i128 = relu(model.l1.i1_o9 * data.i1 + model.l1.i2_o9 * data.i2 + model.l1.b9);
-        let val_l1_10: i128 = relu(model.l1.i1_o10 * data.i1 + model.l1.i2_o10 * data.i2 + model.l1.b10);
-        let val_lo_1: i128 = model.lo.i1_o1 * val_l1_1 + model.lo.i2_o1 * val_l1_2 + model.lo.i3_o1 * val_l1_3 + model.lo.i4_o1 * val_l1_4 + model.lo.i5_o1 * val_l1_5 + model.lo.i6_o1 * val_l1_6 + model.lo.i7_o1 * val_l1_7 + model.lo.i8_o1 * val_l1_8 + model.lo.i9_o1 * val_l1_9 + model.lo.i10_o1 * val_l1_10 + model.lo.b1;
-        let val_lo_2: i128 = model.lo.i1_o2 * val_l1_1 + model.lo.i2_o2 * val_l1_2 + model.lo.i3_o2 * val_l1_3 + model.lo.i4_o2 * val_l1_4 + model.lo.i5_o2 * val_l1_5 + model.lo.i6_o2 * val_l1_6 + model.lo.i7_o2 * val_l1_7 + model.lo.i8_o2 * val_l1_8 + model.lo.i9_o2 * val_l1_9 + model.lo.i10_o2 * val_l1_10 + model.lo.b2;
-        return arg_max(val_lo_1, val_lo_2);
+
+        // Compute the output
+        let val_l1_1: i128 = relu(model.l1.i1_o1 * data.in1 + model.l1.i2_o1 * data.in2 + model.l1.b1);
+        let val_l1_2: i128 = relu(model.l1.i1_o2 * data.in1 + model.l1.i2_o2 * data.in2 + model.l1.b2);
+        let val_l1_3: i128 = relu(model.l1.i1_o3 * data.in1 + model.l1.i2_o3 * data.in2 + model.l1.b3);
+        let val_l1_4: i128 = relu(model.l1.i1_o4 * data.in1 + model.l1.i2_o4 * data.in2 + model.l1.b4);
+        let val_l1_5: i128 = relu(model.l1.i1_o5 * data.in1 + model.l1.i2_o5 * data.in2 + model.l1.b5);
+        let val_l1_6: i128 = relu(model.l1.i1_o6 * data.in1 + model.l1.i2_o6 * data.in2 + model.l1.b6);
+        let val_l1_7: i128 = relu(model.l1.i1_o7 * data.in1 + model.l1.i2_o7 * data.in2 + model.l1.b7);
+        let val_l1_8: i128 = relu(model.l1.i1_o8 * data.in1 + model.l1.i2_o8 * data.in2 + model.l1.b8);
+        let val_l1_9: i128 = relu(model.l1.i1_o9 * data.in1 + model.l1.i2_o9 * data.in2 + model.l1.b9);
+        let val_l1_10: i128 = relu(model.l1.i1_o10 * data.in1 + model.l1.i2_o10 * data.in2 + model.l1.b10);
+        let val_l2_1: i128 = model.l2.i1_o1 * val_l1_1 + model.l2.i2_o1 * val_l1_2 + model.l2.i3_o1 * val_l1_3 + model.l2.i4_o1 * val_l1_4 + model.l2.i5_o1 * val_l1_5 + model.l2.i6_o1 * val_l1_6 + model.l2.i7_o1 * val_l1_7 + model.l2.i8_o1 * val_l1_8 + model.l2.i9_o1 * val_l1_9 + model.l2.i10_o1 * val_l1_10 + model.l2.b1;
+        let val_l2_2: i128 = model.l2.i1_o2 * val_l1_1 + model.l2.i2_o2 * val_l1_2 + model.l2.i3_o2 * val_l1_3 + model.l2.i4_o2 * val_l1_4 + model.l2.i5_o2 * val_l1_5 + model.l2.i6_o2 * val_l1_6 + model.l2.i7_o2 * val_l1_7 + model.l2.i8_o2 * val_l1_8 + model.l2.i9_o2 * val_l1_9 + model.l2.i10_o2 * val_l1_10 + model.l2.b2;
+        return arg_max(val_l2_1, val_l2_2) - 1u8;
     }
 }
