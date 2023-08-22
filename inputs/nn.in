@@ -1,4 +1,7 @@
-// The program input for nn/src/main.leo
-[main]
-public a: u32 = 1u32;
-b: u32 = 2u32;
+// The program input for src/main.leo
+// To pass input data into the "compute" transition we
+// 1. Define the "Input" type.
+// 2. Use brackets `{ }` to enclose the struct members.
+// 3. Define each struct member `name : value`.
+[compute]
+data: Input = Input { in1: 11111i128, in2: 22222i128 };
