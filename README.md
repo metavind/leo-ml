@@ -97,9 +97,9 @@ We demonstrate the use of the framework by creating an Aleo program for simple n
 
 The circles dataset is a toy dataset which consists of concentric circles of 2 classes of points. The dataset is shown below:
 
-<center><img src="training/circle_fc_visualization.png" width="200" height="200"></center>
+<img src="training/circle_fc_visualization.png" width="200" height="200"/>
 
-<center>Circles dataset - the blue points have class label 1, and the red points have class label 0</center>
+Circles dataset - the blue points have class label 1, and the red points have class label 0
 &nbsp;
 
 ### Neural network training
@@ -112,6 +112,10 @@ We generate an Aleo program for inference using the following command:
 
 ```sh
 python leo_program_generator.py --program_name nn --model_parameters training/circle_fc_parameters.json
+
+# Generated Aleo program code: src/main.leo
+# Generated Aleo program input template: inputs/nn.in
+# Generated Aleo program json: program.json
 ```
 
 This creates the Aleo program in [`src/main.leo`](src/main.leo), creates a [`program.json`](program.json) file, and also creates an input template file for the program in [`inputs/nn.in`](inputs/nn.in).
@@ -120,22 +124,51 @@ We check that the program has been generated correctly by running the following 
 
 ```sh
 leo run compute "{ in1: 966399i128, in2: 359227i128 }"
-```
 
-The output of the above command should be `0`.
+
+#        Leo ✅ Compiled 'main.leo' into Aleo instructions
+#
+# ⛓  Constraints
+#
+#  •  'nn.aleo/compute' - 54,770 constraints (called 1 time)
+#
+# ➡️  Output
+#
+#  • 0u8
+#
+#        Leo ✅ Finished 'nn.aleo/compute'
+```
 
 ### Testing the Aleo program on test samples
 
 We generate a test script to test the Aleo program on the test samples using the following command:
 
 ```sh
-python leo_test_generator.py --program_name nn --test_samples training/circle_fc_samples.json 
+python leo_test_generator.py --program_name nn --test_samples training/circle_fc_samples.json
+
+# Generated test script: test_nn.sh
 ```
 
 This creates a test script [`test_nn.sh`](test_nn.sh) which can be run using the following command:
 
 ```sh
 ./test_nn.sh
+
+# Running tests for nn program
+#
+# Test 1
+# Actual Value   : 1u8
+# Expected Value : 1u8
+#
+# Test 2
+# Actual Value   : 0u8
+# Expected Value : 0u8
+#
+# Test 3
+# Actual Value   : 1u8
+# Expected Value : 1u8
+#
+# ...
 ```
 
 We will see that the output of the Aleo program matches the expected output from the neural network for each test sample.
