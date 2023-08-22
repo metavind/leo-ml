@@ -8,9 +8,17 @@ Description:
     as well as the necessary logic to compute forward passes through the network.
 
 Inputs:
-    - A JSON file containing the neural network's weights and biases. The JSON
-      should have keys of the form 'lX_weights' and 'lX_biases', where X is
-      the layer number (starting from 1).
+    - The desired name of the Aleo program to be generated.
+    - A JSON file containing the neural network's weights and biases. The JSON should
+      have keys of the form 'lX_weights' and 'lX_biases', where X is the layer number
+      (starting from 1). The JSON file should have the following structure:
+        {
+            "l1_weights": [l1_weights],
+            "l1_biases": [l1_biases],
+            "l2_weights": [l2_weights],
+            "l2_biases": [l2_biases],
+            ...
+        }
 
 Outputs:
     - An Aleo source code file (`.leo`) that represents the given neural network
@@ -281,8 +289,6 @@ if __name__ == "__main__":
         description="Generate Aleo code for Neural Network.")
     parser.add_argument('--model_parameters', required=True, type=str,
                         help='Path to JSON file containing model parameters.')
-    parser.add_argument('--save_path', default="src/main.leo", type=str,
-                        help='Path to output Aleo code file.')
     parser.add_argument('--program_name', required=True,
                         type=str, help='Name of the Aleo program.')
     args = parser.parse_args()
@@ -293,10 +299,11 @@ if __name__ == "__main__":
     documentation = generate_documentation_header()
     code = generate_nn_code(args.program_name, model_parameters)
 
-    with open(args.save_path, 'w') as f:
+    save_path = os.path.join("src", "main.leo")
+    with open(save_path, 'w') as f:
         f.write(documentation)
         f.write(code)
-    print(f"Generated Aleo program code at {args.save_path}")
+    print(f"Generated Aleo program code at {save_path}")
 
     program_input_template = generate_program_input_template(model_parameters)
 
