@@ -25,6 +25,13 @@ leo run compute "{ in1: 966399i128, in2: 359227i128 }"
 ./test_nn.sh
 ```
 
+Please ensure a `.env` file is present in the root directory of the repository. The file should contain the following environment variables:
+
+```sh
+NETWORK=testnet3
+PRIVATE_KEY=<your_private_key>
+```
+
 ## Generating Aleo program from a custom trained neural network
 
 Run the following command to generate an Aleo program for inference using the parameters of a custom trained neural network:
@@ -91,7 +98,7 @@ Note: The test_samples file should be a JSON containing the test samples. The JS
 
 ## Example - Binary classification on circles dataset
 
-We demonstrate the use of the framework by creating an Aleo program for simple neural network inference applied to the problem of binary classification on circles dataset. 
+We demonstrate the use of the framework by creating an Aleo program for simple neural network inference applied to the problem of binary classification on circles dataset.
 
 ### Circles dataset
 
@@ -172,3 +179,27 @@ This creates a test script [`test_nn.sh`](test_nn.sh) which can be run using the
 ```
 
 We will see that the output of the Aleo program matches the expected output from the neural network for each test sample.
+
+### Deploying the program on Aleo Testnet3
+
+We deploy the program on Aleo Testnet3. Since the testnet penalizes programs with short names, we renamed our program name to `nn_fab66aa01347d3f11a1646894137`. The deployment was done using the following command:
+
+```sh
+snarkos developer deploy "nn_fab66aa01347d3f11a1646894137.aleo" --private-key "${PRIVATE_KEY}" --query "https://vm.aleo.org/api" --path "./build/" --broadcast "https://vm.aleo.org/api/testnet3/transaction/broadcast" --fee 1 --record "${RECORD}"
+```
+
+The program was deployed successfully and the transaction id is [at15va7aacjlaq68v455fyqpjj2zzlm9zv4wav34yq0cg70vfrpqqgqcv8suj](https://www.aleo.network/transactions/at15va7aacjlaq68v455fyqpjj2zzlm9zv4wav34yq0cg70vfrpqqgqcv8suj).
+
+### Executing the program on Aleo Testnet3
+
+We execute the deployed program on Aleo Testnet3 using the following command:
+
+```sh
+snarkos developer execute "nn_fab66aa01347d3f11a1646894137.aleo" "compute" "{ in1: 4443i128, in2: 966478i128 }" --private-key "${PRIVATE_KEY}" --query "https://vm.aleo.org/api" --broadcast "https://vm.aleo.org/api/testnet3/transaction/broadcast" --fee 1 --record "${RECORD}"
+```
+
+The program was executed successfully and the transaction id is [at1neja6fjaazrpfjv9wrxn2g6gkynk9g79hezyh8pdl4pppjexcuyskq9yxv](https://www.aleo.network/transactions/at1neja6fjaazrpfjv9wrxn2g6gkynk9g79hezyh8pdl4pppjexcuyskq9yxv). It gives the correct output of `0u8`.
+
+### Demo
+
+We have created a demo video which can be found here: [https://drive.google.com/file/d/13QBKLl1WMl6H2aCBHjeZBaewC13sxy2_/view?usp=sharing](https://drive.google.com/file/d/13QBKLl1WMl6H2aCBHjeZBaewC13sxy2_/view?usp=sharing).
