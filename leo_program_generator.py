@@ -16,7 +16,8 @@ Outputs:
     - An Aleo source code file (`.leo`) that represents the given neural network
       and provides a `compute` transition function that takes input data and
       produces an output.
-    - An Aleo program input template (`.in`) that can be used to pass input data.
+    - An Aleo program input template named `<program_name>.in` that can be used to
+      pass input data.
     - An Aleo program JSON file (`.json`) that provides metadata about the program.
 
 Usage:
