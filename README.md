@@ -27,7 +27,7 @@ leo run compute "{ in1: 966399i128, in2: 359227i128 }"
 
 ## Generating Aleo program from a custom trained neural network
 
-Run the following command to generate Aleo program using the parameters of a custom trained neural network:
+Run the following command to generate an Aleo program for inference using the parameters of a custom trained neural network:
 
 ```sh
 python leo_program_generator.py --program_name <desired_program_name> --model_parameters <path_to_model_parameters>
@@ -88,3 +88,54 @@ Note: The test_samples file should be a JSON containing the test samples. The JS
     "output2": 1
 }
 ```
+
+## Example - Binary classification on circles dataset
+
+We demonstrate the use of the framework by creating an Aleo program for simple neural network inference applied to the problem of binary classification on circles dataset. 
+
+### Circles dataset
+
+The circles dataset is a toy dataset which consists of concentric circles of 2 classes of points. The dataset is shown below:
+
+<center><img src="training/circle_fc_visualization.png" width="200" height="200"></center>
+
+<center>Circles dataset - the blue points have class label 1, and the red points have class label 0</center>
+&nbsp;
+
+### Neural network training
+
+We train a neural network with one hidden layer of dimension 10 and one output layer on this dataset. The neural network training code is present in the jupyter notebook [`training/circle_fc.ipynb`](training/circle_fc.ipynb). Once the model is trained, we save the model parameters in [`training/circle_fc_parameters.json`](training/circle_fc_parameters.json) and also save some test samples in [`training/circle_fc_samples.json`](training/circle_fc_samples.json).
+
+### Generating Aleo program for inference
+
+We generate an Aleo program for inference using the following command:
+
+```sh
+python leo_program_generator.py --program_name nn --model_parameters training/circle_fc_parameters.json
+```
+
+This creates the Aleo program in [`src/main.leo`](src/main.leo), creates a [`program.json`](program.json) file, and also creates an input template file for the program in [`inputs/nn.in`](inputs/nn.in).
+
+We check that the program has been generated correctly by running the following command:
+
+```sh
+leo run compute "{ in1: 966399i128, in2: 359227i128 }"
+```
+
+The output of the above command should be `0`.
+
+### Testing the Aleo program on test samples
+
+We generate a test script to test the Aleo program on the test samples using the following command:
+
+```sh
+python leo_test_generator.py --program_name nn --test_samples training/circle_fc_samples.json 
+```
+
+This creates a test script [`test_nn.sh`](test_nn.sh) which can be run using the following command:
+
+```sh
+./test_nn.sh
+```
+
+We will see that the output of the Aleo program matches the expected output from the neural network for each test sample.
